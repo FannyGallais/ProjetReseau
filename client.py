@@ -9,7 +9,7 @@ from Tkinter import*
 
 
 def run_client(num,I):
-	I.chgt_situation("Traitement de la commande en cours")
+	I.chgt_situation("Traitement de la commande en cours\n En attente d'un livreur disponible")
 	global stopLoop
 	stopLoop=True
 	try:
@@ -22,10 +22,13 @@ def run_client(num,I):
 			s.send(msg)
 			data = s.recv(255)
 			if t==0:
-				I.chgt_situation("Traitement de la commande en cours\n le livreur "+data[0]+" s'occupe de livraison")
+				I.chgt_situation("Traitement de la commande en cours\n le livreur "+data[0]+" s'occupe de la livraison") #Pour savoir par quel livreur est pris en charge le client
 			t+=1
 			if data == "fin": 
 				I.chgt_situation("Votre commande a bien ete livree\n Vous pouvez commander de nouveau ou quitter")
+				stopLoop=False
+			if data == "fin_attente": 
+				I.chgt_situation("Votre commande a bien ete livree, nous nous excusons pour l'attente!\n Vous pouvez commander de nouveau ou quitter")
 				stopLoop=False
 
 
