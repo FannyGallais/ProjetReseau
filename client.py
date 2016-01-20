@@ -16,11 +16,14 @@ def run_client(num,I):
 
 		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		s.connect(("",8001))
-		
+		t=0
 		while stopLoop:
 			msg ="client"+str(num)+" en attente pour un "+c
 			s.send(msg)
 			data = s.recv(255)
+			if t==0:
+				I.chgt_situation("Traitement de la commande en cours\n le livreur "+data[0]+" s'occupe de livraison")
+			t+=1
 			if data == "fin": 
 				I.chgt_situation("Votre commande a bien ete livree\n Vous pouvez commander de nouveau ou quitter")
 				stopLoop=False
@@ -31,7 +34,7 @@ def run_client(num,I):
 			print "erreur dans l'appel a une methode de la classe socket: %s" % e
 			sys.exit(1)
 	finally:
-		s.shutdown(1)
+		#s.shutdown(1)
 		s.close()
 		print "Le client a recu sa commande"
 		
@@ -46,7 +49,7 @@ class Interface:
 		self.fenetre = Tk()
 		self.fenetre.geometry("500x500")
 
-		self.fenetre.title("COMMANDE")
+		self.fenetre.title("CLIENT "+str(num_client))
 
 		self.panel = PanedWindow(self.fenetre,orient=VERTICAL,height=750,width=1000)
 		self.panel.pack()

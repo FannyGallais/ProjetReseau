@@ -42,6 +42,7 @@ def f_thread(clisock):
 		num_livreur +=1
 		
     restaurant[num_livreur].occupe=True
+    num_livreur=restaurant[num_livreur].num
     time=0
        
 	
@@ -51,14 +52,14 @@ def f_thread(clisock):
         if t==0:
 			print data
 			num = data[6]
-        clisock.send(data)
+			
+		clisock.send(data)
         t+=1
         time+=1
-        print time
 	
-	if time>100000:
-	   print "Le client"+num+" a ete livre par le livreur"+str(restaurant[num_livreur].num)
-	   restaurant[num_livreur].occupe=False
+	if time>150000:
+	   print "Le client"+num+" a ete livre par le livreur"+str(num_livreur)
+	   restaurant[num_livreur-1].occupe=False
 	   clisock.send("fin")
 	   clisock.shutdown(0)
 	   listeClient.remove(clisock)
