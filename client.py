@@ -8,8 +8,8 @@ from Tkinter import*
 
 
 
-def run_client(num):
-	print "je run"
+def run_client(num,I):
+	I.chgt_situation("Traitement de la commande en cours")
 	global stopLoop
 	stopLoop=True
 	try:
@@ -21,7 +21,9 @@ def run_client(num):
 			msg ="client"+str(num)+" en attente pour un "+c
 			s.send(msg)
 			data = s.recv(255)
-			if data == "fin": stopLoop=False
+			if data == "fin": 
+				I.chgt_situation("Votre commande a bien ete livree\n Vous pouvez commander de nouveau ou quitter")
+				stopLoop=False
 
 
 
@@ -32,7 +34,6 @@ def run_client(num):
 		s.shutdown(1)
 		s.close()
 		print "Le client a recu sa commande"
-		sys.exit()
 		
 	
 	
@@ -46,29 +47,39 @@ class Interface:
 		self.fenetre.geometry("500x500")
 
 		self.fenetre.title("COMMANDE")
-		
-		self.panel = PanedWindow(self.fenetre,orient=HORIZONTAL,height=750,width=1000)
+
+		self.panel = PanedWindow(self.fenetre,orient=VERTICAL,height=750,width=1000)
 		self.panel.pack()
-		self.commander=Button(self.fenetre, text="Commander", command=self.b_commande, height=50)
+		self.var = StringVar()
+		self.situation = Label(self.fenetre,textvariable=self.var,height=10)
+		self.var.set("Bienvenue dans notre restaurant")
+		self.panel.add(self.situation)
+
+		self.commander=Button(self.fenetre, text="Commander", command=self.b_commande,height=10)
 		self.panel.add(self.commander)
 		self.num=num_client
-		self.quitter=Button(self.fenetre,text="Quitter",command=self.b_quitter,height=50)
+        
+		self.quitter=Button(self.fenetre,text="Quitter",command=self.b_quitter)
 		self.panel.add(self.quitter)
-		
+
 		
 	def b_commande(self):
-		run_client(self.num)
+		run_client(self.num,self)
 	
 	def b_quitter(self):
-		if stopLoop==True:
-			print "Vous ne pouvez pas quitter car vous etes en cours de livraison"
-		else:
-			sys.exit(1)
+		sys.exit()
 
 	def run (self) :
 		self.fenetre.update_idletasks()
 		self.fenetre.update()
 		self.fenetre.mainloop()
+	
+	def chgt_situation(self,s):
+		self.var.set(s)
+		self.fenetre.update_idletasks()
+		self.fenetre.update()
+
+
 
 
 
@@ -99,6 +110,7 @@ t=0
 c=client1.commande()
 I=Interface(num)
 I.run()
+
 
 
 
