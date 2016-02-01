@@ -102,7 +102,7 @@ class client:
 		self.num=num #Chaque client a un numero
 	def commande(self):
 		n=random.randint(0,10) #On pourrait faire par exemple 10 menus differents
-		commande = "Menu"+str(n)
+		commande = "Menu "+str(n)
 		return commande
 		
 
