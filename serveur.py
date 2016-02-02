@@ -25,11 +25,11 @@ for i in xrange(5):
 	restaurant.append(livreur(i+1))
 
 
-restaurant[0].occupe=True
-restaurant[1].occupe=True
+restaurant[0].occupe=False
+restaurant[1].occupe=False
 restaurant[2].occupe=True
 restaurant[3].occupe=True
-restaurant[4].occupe=False
+restaurant[4].occupe=True
 
 
 def livreur_dispo():
@@ -42,7 +42,7 @@ def livreur_dispo():
 	return id_livreur
 
 
-
+"""
 def livreur_dispo():
 	nb_livreur=0 
 	for i in range(len(restaurant)):
@@ -50,7 +50,7 @@ def livreur_dispo():
 			nb_livreur+=1
 	return nb_livreur		
 
-	
+"""	
 
 
 #############################################################################
@@ -66,6 +66,7 @@ def f_thread(clisock):
 	waiting_time=0
 	while livreur_dispo()=="wait": #On attend qu'un livreur soit disponible
 		waiting_time+=1
+		id_livreur=livreur_dispo()
 	id_livreur=livreur_dispo()
 	restaurant[id_livreur].occupe=True
 	num_livreur=restaurant[id_livreur].num
@@ -84,8 +85,10 @@ def f_thread(clisock):
 		t+=1
 		time+=1
 
-		if time>1000000:
+
+		if time>50000:
 		   print "Le client"+num+" a ete livre par le livreur"+str(num_livreur)+" apres un temps d'attente de "+str(waiting_time)
+		   ecriture(num,str(num_livreur),str(waiting_time))
 		   restaurant[id_livreur].occupe=False
 		   if waiting_time!=0: #Pour signaler qu'il y a eu de l'attente a la partie client
 			   clisock.send("fin_attente")
@@ -97,7 +100,13 @@ def f_thread(clisock):
 
 
 
+fichier=open('test.txt','w')
+verrou1=threading.Lock()
 
+def ecriture(client,livreur,attente):
+	verrou1.acquire()
+	fichier.write("Le client "+client+"	a ete livre par :	"+livreur+ "    Attente :"+attente+"\n")
+	verrou1.release()
 
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -108,6 +117,7 @@ while True:
 	listeClient.append(clisock)
 	print "Un client a passe commande"
 	
+	"""
 	verrou.acquire()
 	nb_livreur=livreur_dispo()
 	#if nb_livreur==5: # Ces deux lignes font beuger le code 
@@ -117,9 +127,10 @@ while True:
 
 		
 	verrou.release()
-		
+	"""	
 	t = threading.Thread(target=f_thread, args=(clisock,))
 	t.start()
 	
 	
 
+fichier.close()
