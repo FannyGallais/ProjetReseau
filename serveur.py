@@ -3,9 +3,30 @@ import socket
 import threading
 import time
 import sys
-verrou=threading.Lock()
+from Tkinter import *
 
+class Interface:
 
+	def __init__(self) :
+
+		self.fenetre = Tk()
+		self.fenetre.geometry("500x500")
+
+		self.fenetre.title("BILAN DE LA SOIREE")
+
+		self.panel = PanedWindow(self.fenetre,orient=VERTICAL,height=750,width=1000)
+		self.panel.pack()
+		self.var = StringVar()
+		self.situation = Label(self.fenetre,textvariable=self.var,height=10)
+		self.var.set("Voici le bilan de la soiree")
+		self.panel.add(self.situation)
+		self.quitter=Button(self.fenetre,text="Quitter",command=self.b_quitter)
+		self.panel.add(self.quitter)
+	
+	def b_quitter(self):
+		sys.exit()
+
+		
 
 class livreur:
 	
@@ -37,26 +58,16 @@ def livreur_dispo():
 	while restaurant[id_livreur].occupe==True:
 		id_livreur +=1
 		if id_livreur>=len(restaurant): #Si aucun livreur n'est libre
-			return "wait"
-	print " on utilise le livreur ",id_livreur		
+			return "wait"	
 	return id_livreur
 
-
-"""
-def livreur_dispo():
-	nb_livreur=0 
-	for i in range(len(restaurant)):
-		if restaurant[i].occupe==True :
-			nb_livreur+=1
-	return nb_livreur		
-
-"""	
 
 
 #############################################################################
 #								PARTIE SERVEUR								#
 #############################################################################
 listeClient=[]
+max_commande=2
 
 def f_thread(clisock):
 
@@ -68,8 +79,10 @@ def f_thread(clisock):
 		waiting_time+=1
 		id_livreur=livreur_dispo()
 	id_livreur=livreur_dispo()
+	
 	restaurant[id_livreur].occupe=True
 	num_livreur=restaurant[id_livreur].num
+	print " on utilise le livreur ",num_livreur
 	time=0
        
 	
@@ -95,12 +108,11 @@ def f_thread(clisock):
 		   else:
 				clisock.send("fin")
 		   clisock.shutdown(0)
-		   listeClient.remove(clisock)
 		   loopEnd = False
 
 
 
-fichier=open('test.txt','w')
+fichier=open('Commandes.txt','w')
 verrou1=threading.Lock()
 
 def ecriture(client,livreur,attente):
@@ -116,21 +128,13 @@ while True:
 	clisock, addr = sock.accept()
 	listeClient.append(clisock)
 	print "Un client a passe commande"
-	
-	"""
-	verrou.acquire()
-	nb_livreur=livreur_dispo()
-	#if nb_livreur==5: # Ces deux lignes font beuger le code 
-	#	print "Attente d'un livreur"
-	while (nb_livreur>4):
-		nb_livreur=livreur_dispo()
-
-		
-	verrou.release()
-	"""	
 	t = threading.Thread(target=f_thread, args=(clisock,))
 	t.start()
-	
-	
+	t.join()
+	if len(listeClient)>max_commande-1: break
 
+sock.close() #Empeche les client de se connecter
+print "Fin"
+I=Interface()
+I.fenetre.mainloop()
 fichier.close()
