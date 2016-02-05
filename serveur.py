@@ -67,7 +67,7 @@ def livreur_dispo():
 #								PARTIE SERVEUR								#
 #############################################################################
 listeClient=[]
-max_commande=2
+max_commande=5
 
 def f_thread(clisock):
 
