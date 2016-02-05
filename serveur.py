@@ -7,7 +7,7 @@ from Tkinter import *
 
 class Interface:
 
-	def __init__(self) :
+	def __init__(self,chiffre) :
 
 		self.fenetre = Tk()
 		self.fenetre.geometry("500x500")
@@ -18,7 +18,7 @@ class Interface:
 		self.panel.pack()
 		self.var = StringVar()
 		self.situation = Label(self.fenetre,textvariable=self.var,height=10)
-		self.var.set("Voici le bilan de la soiree")
+		self.var.set("Chiffre d'affaire du jour: "+str(chiffre)+ " euros")
 		self.panel.add(self.situation)
 		self.quitter=Button(self.fenetre,text="Quitter",command=self.b_quitter)
 		self.panel.add(self.quitter)
@@ -41,6 +41,7 @@ class livreur:
 			return "Livreur"+str(self.num)+" : occupe\n"
 
 
+#Creation de l'enemble des livreurs
 restaurant = []
 for i in xrange(5):
 	restaurant.append(livreur(i+1))
@@ -67,10 +68,10 @@ def livreur_dispo():
 #								PARTIE SERVEUR								#
 #############################################################################
 listeClient=[]
-max_commande=5
+max_commande=2 #Nombre max de comandes avant fermeture du serveur
+liste_prix=[] #Pour stocker les prix des differntes commandes
 
 def f_thread(clisock):
-
 	loopEnd = True
 	t=0
 	#On cherche le premier livreur disponible:
@@ -92,6 +93,8 @@ def f_thread(clisock):
 		if t==0:
 			print data
 			num = data[6]
+			stock=data.split("(")[1]
+			prix=int(stock.split("e")[0]) #prix du menu
 			clisock.send(str(num_livreur)) #On envoie le numero du livreur au client
 			
 		clisock.send(data)
@@ -101,6 +104,7 @@ def f_thread(clisock):
 
 		if time>50000:
 		   print "Le client"+num+" a ete livre par le livreur"+str(num_livreur)+" apres un temps d'attente de "+str(waiting_time)
+		   liste_prix.append(prix)
 		   ecriture(num,str(num_livreur),str(waiting_time))
 		   restaurant[id_livreur].occupe=False
 		   if waiting_time!=0: #Pour signaler qu'il y a eu de l'attente a la partie client
@@ -121,6 +125,7 @@ def ecriture(client,livreur,attente):
 	verrou1.release()
 
 
+
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sock.bind(('',8001))
 sock.listen(5)
@@ -133,8 +138,11 @@ while True:
 	t.join()
 	if len(listeClient)>max_commande-1: break
 
+
+# Une fois que le maximum de commande est atteint, les clients ne peuvent plus se connecter, un bilan s'affiche a l'ecran
 sock.close() #Empeche les client de se connecter
 print "Fin"
-I=Interface()
+chiffre = sum(liste_prix)
+I=Interface(chiffre)
 I.fenetre.mainloop()
 fichier.close()

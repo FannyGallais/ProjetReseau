@@ -9,7 +9,7 @@ from Tkinter import*
 
 
 def run_client(client,I):
-	client.commande=I.liste.get(I.liste.curselection())[0:5] #Le client choisit sa commande
+	client.commande=I.liste.get(I.liste.curselection()) #Le client choisit sa commande
 	I.chgt_situation("Traitement de la commande en cours\n En attente d'un livreur disponible")
 	global stopLoop
 	stopLoop=True
@@ -63,16 +63,16 @@ class Interface:
 		self.panel.add(self.situation)
 		
 		self.liste = Listbox(self.fenetre)
-		self.liste.insert(1, "Menu1    10 euros")
-		self.liste.insert(2, "Menu2    12 euros")
-		self.liste.insert(3, "Menu3    10.5 euros")
-		self.liste.insert(4, "Menu4    15 euros")
-		self.liste.insert(5, "Menu5    6 euros")
-		self.liste.insert(6, "Menu6    9 euros")
-		self.liste.insert(7, "Menu7    11 euros")
-		self.liste.insert(8, "Menu8    10 euros")
-		self.liste.insert(9, "Menu9    9.5 euros")
-		self.liste.insert(10, "Menu10    8.5 euros")
+		self.liste.insert(1, "Menu1(10euros)")
+		self.liste.insert(2, "Menu2(12euros)")
+		self.liste.insert(3, "Menu3(13euros)")
+		self.liste.insert(4, "Menu4(15euros)")
+		self.liste.insert(5, "Menu5(6euros)")
+		self.liste.insert(6, "Menu6(9euros)")
+		self.liste.insert(7, "Menu7(11 euros)")
+		self.liste.insert(8, "Menu8(10euros)")
+		self.liste.insert(9, "Menu9(9euros)")
+		self.liste.insert(10, "Menu10(8euros)")
 		self.panel.add(self.liste)
 		
 		self.commander=Button(self.fenetre, text="Commander", command=self.b_commande,height=7)
