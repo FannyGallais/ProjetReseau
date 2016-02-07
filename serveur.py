@@ -8,7 +8,7 @@ from Tkinter import *
 
 class Interface:
 
-	def __init__(self,chiffre) :
+	def __init__(self,chiffre, temps_moyen_attente) :
 
 		self.fenetre = Tk()
 		self.fenetre.geometry("500x500")
@@ -19,7 +19,7 @@ class Interface:
 		self.panel.pack()
 		self.var = StringVar()
 		self.situation = Label(self.fenetre,textvariable=self.var,height=10)
-		self.var.set("Chiffre d'affaire du jour: "+str(chiffre)+ " euros")
+		self.var.set("Chiffre d'affaire du jour: "+str(chiffre)+ " euros \n Temps moyen d'attente:" + str(temps_moyen_attente))
 		self.panel.add(self.situation)
 		self.quitter=Button(self.fenetre,text="Quitter",command=self.b_quitter)
 		self.panel.add(self.quitter)
@@ -71,6 +71,7 @@ def livreur_dispo():
 listeClient=[]
 max_commande=10 #Nombre max de comandes avant fermeture du serveur
 liste_prix=[] #Pour stocker les prix des differntes commandes
+liste_temps_attente=[]
 
 def f_thread(clisock):
 	loopEnd = True
@@ -109,8 +110,9 @@ def f_thread(clisock):
 		print "Le client"+num+" a ete livre par le livreur"+str(num_livreur)+" apres un temps d'attente de "
 		print("{0:.2f}".format(elapsed_time))+str("s")
 		liste_prix.append(prix)
+		liste_temps_attente.append(waiting_T)
 		restaurant[id_livreur].occupe=False
-		#ecriture(num,str(num_livreur),str(waiting_T))
+		ecriture(num,str(num_livreur),str(waiting_T))
 		if waiting_T!=0: #Pour signaler qu'il y a eu de l'attente a la partie client
 			clisock.send("fin_attente")
 		else:
@@ -147,6 +149,7 @@ while True:
 sock.close() #Empeche les client de se connecter
 print "Fin"
 chiffre = sum(liste_prix)
-I=Interface(chiffre)
+temps_moyen_attente=sum(liste_temps_attente)/len(liste_temps_attente)
+I=Interface(chiffre, temps_moyen_attente)
 I.fenetre.mainloop()
 fichier.close()
