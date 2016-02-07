@@ -68,25 +68,24 @@ def livreur_dispo():
 #								PARTIE SERVEUR								#
 #############################################################################
 listeClient=[]
-max_commande=2 #Nombre max de comandes avant fermeture du serveur
+max_commande=10 #Nombre max de comandes avant fermeture du serveur
 liste_prix=[] #Pour stocker les prix des differntes commandes
 
 def f_thread(clisock):
 	loopEnd = True
 	t=0
 	#On cherche le premier livreur disponible:
-	waiting_time=0
+	waiting_T=0
 	while livreur_dispo()=="wait": #On attend qu'un livreur soit disponible
-		waiting_time+=1
+		waiting_T+=1
 		id_livreur=livreur_dispo()
 	id_livreur=livreur_dispo()
-	
+
 	restaurant[id_livreur].occupe=True
 	num_livreur=restaurant[id_livreur].num
 	print " on utilise le livreur ",num_livreur
-	time=0
-       
-	
+
+  
   
 	while loopEnd:
 		data = clisock.recv(2048)
@@ -99,20 +98,19 @@ def f_thread(clisock):
 			
 		clisock.send(data)
 		t+=1
-		time+=1
+		
 
-
-		if time>50000:
-		   print "Le client"+num+" a ete livre par le livreur"+str(num_livreur)+" apres un temps d'attente de "+str(waiting_time)
-		   liste_prix.append(prix)
-		   ecriture(num,str(num_livreur),str(waiting_time))
-		   restaurant[id_livreur].occupe=False
-		   if waiting_time!=0: #Pour signaler qu'il y a eu de l'attente a la partie client
-			   clisock.send("fin_attente")
-		   else:
-				clisock.send("fin")
-		   clisock.shutdown(0)
-		   loopEnd = False
+		time.sleep(15)
+		print "Le client"+num+" a ete livre par le livreur"+str(num_livreur)+" apres un temps d'attente de "+str(waiting_T)
+		liste_prix.append(prix)
+		restaurant[id_livreur].occupe=False
+		#ecriture(num,str(num_livreur),str(waiting_T))
+		if waiting_T!=0: #Pour signaler qu'il y a eu de l'attente a la partie client
+			clisock.send("fin_attente")
+		else:
+			clisock.send("fin")
+		clisock.shutdown(0)
+		loopEnd = False
 
 
 
@@ -135,7 +133,7 @@ while True:
 	print "Un client a passe commande"
 	t = threading.Thread(target=f_thread, args=(clisock,))
 	t.start()
-	t.join()
+	#t.join()
 	if len(listeClient)>max_commande-1: break
 
 
