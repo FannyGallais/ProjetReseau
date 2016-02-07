@@ -1,6 +1,7 @@
 
 import socket
 import threading
+import random
 import time
 import sys
 from Tkinter import *
@@ -75,9 +76,11 @@ def f_thread(clisock):
 	loopEnd = True
 	t=0
 	#On cherche le premier livreur disponible:
-	waiting_T=0
+	#waiting_T=0
+	start_time=time.time()
+	#print(start_time)
 	while livreur_dispo()=="wait": #On attend qu'un livreur soit disponible
-		waiting_T+=1
+		#waiting_T+=1
 		id_livreur=livreur_dispo()
 	id_livreur=livreur_dispo()
 
@@ -100,8 +103,11 @@ def f_thread(clisock):
 		t+=1
 		
 
-		time.sleep(15)
-		print "Le client"+num+" a ete livre par le livreur"+str(num_livreur)+" apres un temps d'attente de "+str(waiting_T)
+		time.sleep(random.randint(8,15))
+		elapsed_time=time.time()-start_time
+		waiting_T=elapsed_time
+		print "Le client"+num+" a ete livre par le livreur"+str(num_livreur)+" apres un temps d'attente de "
+		print("{0:.2f}".format(elapsed_time))+str("s")
 		liste_prix.append(prix)
 		restaurant[id_livreur].occupe=False
 		#ecriture(num,str(num_livreur),str(waiting_T))
