@@ -23,10 +23,16 @@ class Interface:
 		self.panel.add(self.situation)
 		self.quitter=Button(self.fenetre,text="Quitter",command=self.b_quitter)
 		self.panel.add(self.quitter)
-	
+		self.bilan=Button(self.fenetre,text="Bilan",command=self.b_bilan)
+		self.panel.add(self.bilan)
+		self.text = Text()
+		self.panel.add(self.text)
 	def b_quitter(self):
 		sys.exit()
-
+		print "coucou"
+	def b_bilan(self):
+		self.text.insert(1.,open("Commandes.txt",'r').read())
+		
 		
 
 class livreur:
@@ -69,7 +75,7 @@ def livreur_dispo():
 #								PARTIE SERVEUR								#
 #############################################################################
 listeClient=[]
-max_commande=10 #Nombre max de comandes avant fermeture du serveur
+max_commande=2 #Nombre max de comandes avant fermeture du serveur
 liste_prix=[] #Pour stocker les prix des differntes commandes
 liste_temps_attente=[]
 
@@ -104,7 +110,7 @@ def f_thread(clisock):
 		t+=1
 		
 
-		time.sleep(random.randint(8,15))
+		time.sleep(random.randint(8,10))
 		elapsed_time=time.time()-start_time
 		waiting_T=elapsed_time
 		print "Le client"+num+" a ete livre par le livreur"+str(num_livreur)+" apres un temps d'attente de "
@@ -141,8 +147,10 @@ while True:
 	print "Un client a passe commande"
 	t = threading.Thread(target=f_thread, args=(clisock,))
 	t.start()
-	#t.join()
-	if len(listeClient)>max_commande-1: break
+	t.join()
+	if len(listeClient)>max_commande-1: 
+		fichier.close()
+		break
 
 
 # Une fois que le maximum de commande est atteint, les clients ne peuvent plus se connecter, un bilan s'affiche a l'ecran
@@ -152,4 +160,4 @@ chiffre = sum(liste_prix)
 temps_moyen_attente=sum(liste_temps_attente)/len(liste_temps_attente)
 I=Interface(chiffre, temps_moyen_attente)
 I.fenetre.mainloop()
-fichier.close()
+
