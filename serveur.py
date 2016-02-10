@@ -29,7 +29,6 @@ class Interface:
 		self.panel.add(self.text)
 	def b_quitter(self):
 		sys.exit()
-		print "coucou"
 	def b_bilan(self):
 		self.text.insert(1.,open("Commandes.txt",'r').read())
 		
@@ -54,9 +53,9 @@ for i in xrange(5):
 	restaurant.append(livreur(i+1))
 
 
-restaurant[0].occupe=False
+restaurant[0].occupe=True
 restaurant[1].occupe=False
-restaurant[2].occupe=True
+restaurant[2].occupe=False
 restaurant[3].occupe=True
 restaurant[4].occupe=True
 
@@ -75,7 +74,9 @@ def livreur_dispo():
 #								PARTIE SERVEUR								#
 #############################################################################
 listeClient=[]
-max_commande=2 #Nombre max de comandes avant fermeture du serveur
+listeClient2=[]
+threads=[]
+max_commande=4 #Nombre max de comandes avant fermeture du serveur
 liste_prix=[] #Pour stocker les prix des differntes commandes
 liste_temps_attente=[]
 
@@ -83,11 +84,10 @@ def f_thread(clisock):
 	loopEnd = True
 	t=0
 	#On cherche le premier livreur disponible:
-	#waiting_T=0
+	waitServeur=0
 	start_time=time.time()
-	#print(start_time)
 	while livreur_dispo()=="wait": #On attend qu'un livreur soit disponible
-		#waiting_T+=1
+		waitServeur +=1
 		id_livreur=livreur_dispo()
 	id_livreur=livreur_dispo()
 
@@ -101,6 +101,7 @@ def f_thread(clisock):
 		data = clisock.recv(2048)
 		if t==0:
 			print data
+			print str(num_livreur)
 			num = data[6]
 			stock=data.split("(")[1]
 			prix=int(stock.split("e")[0]) #prix du menu
@@ -109,27 +110,40 @@ def f_thread(clisock):
 		clisock.send(data)
 		t+=1
 		
-
-		time.sleep(random.randint(8,10))
-		elapsed_time=time.time()-start_time
-		waiting_T=elapsed_time
+		if len(listeClient)==4:
+			time.sleep(5)
+		else:
+			time.sleep(random.randint(10,30)) 
+		waiting_T=time.time()-start_time
+		
 		print "Le client"+num+" a ete livre par le livreur"+str(num_livreur)+" apres un temps d'attente de "
-		print("{0:.2f}".format(elapsed_time))+str("s")
+		print("{0:.2f}".format(waiting_T))+str("s")
 		liste_prix.append(prix)
 		liste_temps_attente.append(waiting_T)
 		restaurant[id_livreur].occupe=False
-		ecriture(num,str(num_livreur),str(waiting_T))
+		
+		ecriture(num,str(num_livreur),"%.2f" %waiting_T) #on laisse une trace de la commande dans un fichier texte
+	
+		clisock.send("Temps d'attente : %.2f" %waiting_T)
+		
+		#on retire ce client qui a ete livre
+		listeClient2.remove(clisock)
+		
+		#faire du menage ici
 		if waiting_T!=0: #Pour signaler qu'il y a eu de l'attente a la partie client
 			clisock.send("fin_attente")
 		else:
 			clisock.send("fin")
+			
 		clisock.shutdown(0)
+		
 		loopEnd = False
 
 
 
 fichier=open('Commandes.txt','w')
 verrou1=threading.Lock()
+
 
 def ecriture(client,livreur,attente):
 	verrou1.acquire()
@@ -144,11 +158,40 @@ sock.listen(5)
 while True:
 	clisock, addr = sock.accept()
 	listeClient.append(clisock)
+	
+	#creation d'une deuxieme liste pour pouvoir garder seulement les clients en court de commande cf ligne 126/127
+	listeClient2.append(clisock)
+	#print str(len(listeClient)),"len1"
 	print "Un client a passe commande"
 	t = threading.Thread(target=f_thread, args=(clisock,))
+	
+	#liste de threads pour pouvoir utiliser join sur un un client cible
+	threads.append(t)
+	
 	t.start()
-	t.join()
-	if len(listeClient)>max_commande-1: 
+	
+	if len(listeClient)>max_commande-1: #probleme : si d'autres clients sont en train de commander ils ne peuvent pas finir leurs commandes
+		
+		#on doit d'abord finir le dernier client
+		t.join()
+		
+		#cas ou il reste d'autres clients, autres que le dernier, en attente 
+		print str(len(listeClient2))
+		if len(listeClient2)!=0:
+			print "ENCORE DES CLIENTS"
+			"""
+			listeClient3=[]
+			for k in xrange(len(listeClient2)):
+				listeClient3[k]=listeClient2[k]
+			"""
+			a=[]
+			for i in xrange(len(listeClient2)):
+				for j in xrange(len(listeClient)):
+					if listeClient2[i]==listeClient[j]:  #on met un join sur le client qui n'a pas fini 
+						print "ENCORE LE CLIENT ", str(j+1)
+						a.append(j)
+			for i in xrange(len(a)):
+				threads[a[i]].join()
 		fichier.close()
 		break
 

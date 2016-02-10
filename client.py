@@ -4,11 +4,13 @@ import time
 import sys
 import signal
 import random
+import time
 from Tkinter import*
 
 
 
 def run_client(client,I):
+	start_timeClient=time.time()
 	client.commande=I.liste.get(I.liste.curselection()) #Le client choisit sa commande
 	I.chgt_situation("Traitement de la commande en cours\n En attente d'un livreur disponible")
 	global stopLoop
@@ -19,6 +21,7 @@ def run_client(client,I):
 		s.connect(("",8001))
 		t=0
 		while stopLoop:
+			
 			msg ="client"+str(client.num)+" en attente pour un "+client.commande
 			s.send(msg)
 			data = s.recv(255)
@@ -31,6 +34,8 @@ def run_client(client,I):
 			if data == "fin_attente": 
 				I.chgt_situation("Votre commande a bien ete livree, nous nous excusons pour l'attente!\n Vous pouvez commander de nouveau ou quitter")
 				stopLoop=False
+			if data[0:5] == "Temps":
+				I.v.set(data)
 
 
 
@@ -38,9 +43,9 @@ def run_client(client,I):
 			print "erreur dans l'appel a une methode de la classe socket: %s" % e
 			sys.exit(1)
 	finally:
-		#s.shutdown(1)
+
 		s.close()
-		print "Le client a recu sa commande"
+
 		
 	
 	
@@ -82,8 +87,11 @@ class Interface:
 		self.panel.add(self.quitter)
 		self.client=client
 		
-
-
+		self.v=StringVar()
+		self.attente = Label(self.fenetre, textvariable=self.v, bg="white")
+		self.v.set("Temps d'attente")
+		self.attente.pack()
+		self.panel.add(self.attente)
 		
 	def b_commande(self):
 		run_client(self.client,self)
