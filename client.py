@@ -25,6 +25,7 @@ def run_client(client,I):
 			msg ="client"+str(client.num)+" en attente pour un "+client.commande
 			s.send(msg)
 			data = s.recv(255)
+			print data
 			if t==0:
 				I.chgt_situation("Traitement de la commande en cours\n le livreur "+data[0]+" s'occupe de la livraison") #Pour savoir par quel livreur est pris en charge le client
 			t+=1
@@ -36,12 +37,15 @@ def run_client(client,I):
 				stopLoop=False
 			if data[0:5] == "Temps":
 				I.v.set(data)
-
-
+			if data=="bloque":
+				I.chgt_situation("Vous ne pouvez plus passer de commande, le restaurant est ferme.\n Veuillez cliquer sur quitter")
+				I.bloque=True
+				s.close()
 
 	except socket.error, e:
+			I.chgt_situation("Vous ne pouvez plus passer de commande, le restaurant est ferme.\n Veuillez cliquer sur quitter")
 			print "erreur dans l'appel a une methode de la classe socket: %s" % e
-			sys.exit(1)
+			#sys.exit(1)
 	finally:
 
 		s.close()
@@ -93,8 +97,14 @@ class Interface:
 		self.attente.pack()
 		self.panel.add(self.attente)
 		
+		self.bloque= False
+		
 	def b_commande(self):
-		run_client(self.client,self)
+		if self.bloque ==False:
+			run_client(self.client,self)
+		else:
+			self.chgt_situation("Vous ne pouvez plus passer de commande, le restaurant est ferme.\n Veuillez cliquer sur quitter")
+			
 	
 	def b_quitter(self):
 		sys.exit()
@@ -126,10 +136,7 @@ class client:
 		self.distance=d #Distance entre le client et le restaurant pour calculer le temps qu'il faudra pour qu'il soit livre
 		self.num=num #Chaque client a un numero
 		self.commande=""
-	def commande(self):
-		n=random.randint(0,10) #On pourrait faire par exemple 10 menus differents
-		commande = "Menu "+str(n)
-		return commande
+
 		
 
 if len(sys.argv)<2:

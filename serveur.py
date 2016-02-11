@@ -8,7 +8,7 @@ from Tkinter import *
 
 class Interface:
 
-	def __init__(self,chiffre, temps_moyen_attente) :
+	def __init__(self,chiffre, temps_moyen_attente,sock) :
 
 		self.fenetre = Tk()
 		self.fenetre.geometry("500x500")
@@ -27,6 +27,9 @@ class Interface:
 		self.panel.add(self.bilan)
 		self.text = Text()
 		self.panel.add(self.text)
+		
+		self.serveur=sock
+		
 	def b_quitter(self):
 		sys.exit()
 	def b_bilan(self):
@@ -159,9 +162,16 @@ while True:
 	clisock, addr = sock.accept()
 	listeClient.append(clisock)
 	
+	if len(listeClient)>max_commande:
+		print "je dois etre bloque"
+		clisock.send("bloque")
+		if len(listeClient2)==0 :	
+			break	
+	
 	#creation d'une deuxieme liste pour pouvoir garder seulement les clients en court de commande cf ligne 126/127
 	listeClient2.append(clisock)
-	#print str(len(listeClient)),"len1"
+
+
 	print "Un client a passe commande"
 	t = threading.Thread(target=f_thread, args=(clisock,))
 	
@@ -193,14 +203,14 @@ while True:
 			for i in xrange(len(a)):
 				threads[a[i]].join()
 		fichier.close()
-		break
+	
 
 
 # Une fois que le maximum de commande est atteint, les clients ne peuvent plus se connecter, un bilan s'affiche a l'ecran
-sock.close() #Empeche les client de se connecter
+
 print "Fin"
+sock.close() #Empeche les client de se connecter
 chiffre = sum(liste_prix)
 temps_moyen_attente=sum(liste_temps_attente)/len(liste_temps_attente)
-I=Interface(chiffre, temps_moyen_attente)
+I=Interface(chiffre, temps_moyen_attente,sock)
 I.fenetre.mainloop()
-
