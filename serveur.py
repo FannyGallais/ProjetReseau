@@ -6,9 +6,13 @@ import time
 import sys
 from Tkinter import *
 
+#########################################################################################
+#								PARTIE INTERFACE DU SERVEUR								#
+#########################################################################################
+
 class Interface:
 
-	def __init__(self,chiffre, temps_moyen_attente,sock) :
+	def __init__(self,chiffre, temps_moyen_attente) :
 
 		self.fenetre = Tk()
 		self.fenetre.geometry("500x500")
@@ -19,7 +23,7 @@ class Interface:
 		self.panel.pack()
 		self.var = StringVar()
 		self.situation = Label(self.fenetre,textvariable=self.var,height=10)
-		self.var.set("Chiffre d'affaire du jour: "+str(chiffre)+ " euros \n Temps moyen d'attente:" + str(temps_moyen_attente))
+		self.var.set("Chiffre d'affaire du jour: "+str(chiffre)+ " euros \n Temps moyen d'attente: "+"{0:.2f}".format(temps_moyen_attente)+"s")
 		self.panel.add(self.situation)
 		self.quitter=Button(self.fenetre,text="Quitter",command=self.b_quitter)
 		self.panel.add(self.quitter)
@@ -28,7 +32,6 @@ class Interface:
 		self.text = Text()
 		self.panel.add(self.text)
 		
-		self.serveur=sock
 		
 	def b_quitter(self):
 		sys.exit()
@@ -36,7 +39,10 @@ class Interface:
 		self.text.insert(1.,open("Commandes.txt",'r').read())
 		
 		
-
+		
+#############################################################################
+#								CLASSE LIVREUR								#
+#############################################################################
 class livreur:
 	
 	def __init__(self,num):
@@ -56,6 +62,7 @@ for i in xrange(5):
 	restaurant.append(livreur(i+1))
 
 
+#Defenition du statut de chaque livreur
 restaurant[0].occupe=True
 restaurant[1].occupe=False
 restaurant[2].occupe=False
@@ -63,6 +70,7 @@ restaurant[3].occupe=True
 restaurant[4].occupe=True
 
 
+#Cette fonction renvoie wait si tous les livreurs sont occupes, l'identifiant du premier livreur disponible sinon
 def livreur_dispo():
 	id_livreur=0 
 	while restaurant[id_livreur].occupe==True:
@@ -76,36 +84,39 @@ def livreur_dispo():
 #############################################################################
 #								PARTIE SERVEUR								#
 #############################################################################
-listeClient=[]
-listeClient2=[]
-threads=[]
+listeClient=[] #Cette liste stocke tous les clients qui se sont connectes
+listeClient2=[] #Cette liste stocke les clients en cours de livraison
+threads=[] #Cette liste stocke les threads
+
 max_commande=4 #Nombre max de comandes avant fermeture du serveur
+
 liste_prix=[] #Pour stocker les prix des differntes commandes
-liste_temps_attente=[]
+liste_temps_attente=[] #Pour stocker les temps d'attente des differents clients
+
 
 def f_thread(clisock):
 	loopEnd = True
 	t=0
+	
+	start_time=time.time() #Initialisation du decompte du temps
+	
 	#On cherche le premier livreur disponible:
 	waitServeur=0
-	start_time=time.time()
+	
 	while livreur_dispo()=="wait": #On attend qu'un livreur soit disponible
 		waitServeur +=1
-		id_livreur=livreur_dispo()
-	id_livreur=livreur_dispo()
-
+		
+	id_livreur=livreur_dispo() #livreur attitre a la livraison
 	restaurant[id_livreur].occupe=True
 	num_livreur=restaurant[id_livreur].num
-	print " on utilise le livreur ",num_livreur
-
-  
+	print "On utilise le livreur ",num_livreur
+	
   
 	while loopEnd:
 		data = clisock.recv(2048)
 		if t==0:
 			print data
-			print str(num_livreur)
-			num = data[6]
+			num = data[6] #numero du client
 			stock=data.split("(")[1]
 			prix=int(stock.split("e")[0]) #prix du menu
 			clisock.send(str(num_livreur)) #On envoie le numero du livreur au client
@@ -113,27 +124,23 @@ def f_thread(clisock):
 		clisock.send(data)
 		t+=1
 		
-		if len(listeClient)==4:
-			time.sleep(5)
-		else:
-			time.sleep(random.randint(10,30)) 
+		time.sleep(random.randint(5,20)) #Le temps varie aleatoirement d'une livraison a l'autre
 		waiting_T=time.time()-start_time
 		
-		print "Le client"+num+" a ete livre par le livreur"+str(num_livreur)+" apres un temps d'attente de "
-		print("{0:.2f}".format(waiting_T))+str("s")
+		print "Le client"+num+" a ete livre par le livreur"+str(num_livreur)+" apres un temps d'attente de "+("{0:.2f}".format(waiting_T))+str("s")
+		
 		liste_prix.append(prix)
 		liste_temps_attente.append(waiting_T)
-		restaurant[id_livreur].occupe=False
+		restaurant[id_livreur].occupe=False #Le livreur est de nouveau disponible
 		
-		ecriture(num,str(num_livreur),"%.2f" %waiting_T) #on laisse une trace de la commande dans un fichier texte
+		ecriture(num,str(num_livreur),"%.2f" %waiting_T) #on laisse une trace de la commande dans le fichier commande.txt
 	
-		clisock.send("Temps d'attente : %.2f" %waiting_T)
+		clisock.send("Temps d'attente : %.2f" %waiting_T) #On informe le client de son temps d'attente
 		
-		#on retire ce client qui a ete livre
+		#On retire ce client qui a ete livre de la liste
 		listeClient2.remove(clisock)
 		
-		#faire du menage ici
-		if waiting_T!=0: #Pour signaler qu'il y a eu de l'attente a la partie client
+		if waitServeur!=0: #Pour signaler qu'il y a eu de l'attente avant d'obtenir un livreur a la partie client
 			clisock.send("fin_attente")
 		else:
 			clisock.send("fin")
@@ -144,13 +151,13 @@ def f_thread(clisock):
 
 
 
-fichier=open('Commandes.txt','w')
-verrou1=threading.Lock()
+fichier=open('Commandes.txt','w') #Ce fichier garde une trace des commandes passees
+verrou1=threading.Lock() #Pour eviter les conflits d'ecriture dans le fichier
 
 
 def ecriture(client,livreur,attente):
 	verrou1.acquire()
-	fichier.write("Le client "+client+"	a ete livre par :	"+livreur+ "    Attente :"+attente+"\n")
+	fichier.write("Le client "+client+"	a ete livre par le livreur "+livreur+ "    Attente :"+attente+"\n")
 	verrou1.release()
 
 
@@ -161,56 +168,54 @@ sock.listen(5)
 while True:
 	clisock, addr = sock.accept()
 	listeClient.append(clisock)
-	
+			
+	#Si on a atteint le maximum de commande, le client ne peux plus commander
 	if len(listeClient)>max_commande:
-		print "je dois etre bloque"
 		clisock.send("bloque")
 		if len(listeClient2)==0 :	
 			break	
 	
-	#creation d'une deuxieme liste pour pouvoir garder seulement les clients en court de commande cf ligne 126/127
 	listeClient2.append(clisock)
 
-
 	print "Un client a passe commande"
+	
 	t = threading.Thread(target=f_thread, args=(clisock,))
-	
-	#liste de threads pour pouvoir utiliser join sur un un client cible
 	threads.append(t)
-	
 	t.start()
 	
-	if len(listeClient)>max_commande-1: #probleme : si d'autres clients sont en train de commander ils ne peuvent pas finir leurs commandes
+	#Lorsque l'on a atteint le maximum de commandes, on doit faire en sorte que les livraisons se terminent avant de fermer le serveur
+	if len(listeClient)>max_commande-1: 
 		
-		#on doit d'abord finir le dernier client
+		#On termine d'abord la commande du dernier client qui s'est connecte
 		t.join()
 		
-		#cas ou il reste d'autres clients, autres que le dernier, en attente 
-		print str(len(listeClient2))
+		#Il faut traiter le cas ou d'autres clients que le dernier n'ont pas termine (c'est a dire quand listeClient2 contint des elements)
 		if len(listeClient2)!=0:
-			print "ENCORE DES CLIENTS"
-			"""
-			listeClient3=[]
-			for k in xrange(len(listeClient2)):
-				listeClient3[k]=listeClient2[k]
-			"""
-			a=[]
+			print "Il reste "+str(len(listeClient2))+" client(s)"
+			
+			index=[] #Liste des index des clients toujours en cours de livraison
+			
 			for i in xrange(len(listeClient2)):
 				for j in xrange(len(listeClient)):
-					if listeClient2[i]==listeClient[j]:  #on met un join sur le client qui n'a pas fini 
-						print "ENCORE LE CLIENT ", str(j+1)
-						a.append(j)
-			for i in xrange(len(a)):
-				threads[a[i]].join()
+					if listeClient2[i]==listeClient[j]:  
+						index.append(j)
+						
+			for i in xrange(len(index)):
+				threads[index[i]].join() #on met un join sur chaque client qui n'a pas fini 
+				
 		fichier.close()
+	
+	#Si plus aucun client n'est en cours de commande, on ferme le serveur	
+	if len(listeClient2)==0 :	
+		break	
 	
 
 
 # Une fois que le maximum de commande est atteint, les clients ne peuvent plus se connecter, un bilan s'affiche a l'ecran
 
-print "Fin"
-sock.close() #Empeche les client de se connecter
+print "Fin du service"
+sock.close() #Ferme le serveur et empeche les client de se connecter
 chiffre = sum(liste_prix)
 temps_moyen_attente=sum(liste_temps_attente)/len(liste_temps_attente)
-I=Interface(chiffre, temps_moyen_attente,sock)
+I=Interface(chiffre, temps_moyen_attente)
 I.fenetre.mainloop()

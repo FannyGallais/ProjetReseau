@@ -8,9 +8,8 @@ import time
 from Tkinter import*
 
 
-
+#Cette fonction est centrale, elle permet la connexion du client au serveur
 def run_client(client,I):
-	start_timeClient=time.time()
 	client.commande=I.liste.get(I.liste.curselection()) #Le client choisit sa commande
 	I.chgt_situation("Traitement de la commande en cours\n En attente d'un livreur disponible")
 	global stopLoop
@@ -25,27 +24,33 @@ def run_client(client,I):
 			msg ="client"+str(client.num)+" en attente pour un "+client.commande
 			s.send(msg)
 			data = s.recv(255)
-			print data
 			if t==0:
+				print data[1:]
 				I.chgt_situation("Traitement de la commande en cours\n le livreur "+data[0]+" s'occupe de la livraison") #Pour savoir par quel livreur est pris en charge le client
 			t+=1
+			
 			if data == "fin": 
+				print data
 				I.chgt_situation("Votre commande a bien ete livree\n Vous pouvez commander de nouveau ou quitter")
 				stopLoop=False
+				
 			if data == "fin_attente": 
+				print data
 				I.chgt_situation("Votre commande a bien ete livree, nous nous excusons pour l'attente!\n Vous pouvez commander de nouveau ou quitter")
 				stopLoop=False
+				
 			if data[0:5] == "Temps":
+				print data
 				I.v.set(data)
+				
 			if data=="bloque":
-				I.chgt_situation("Vous ne pouvez plus passer de commande, le restaurant est ferme.\n Veuillez cliquer sur quitter")
+				I.chgt_situation("Vous ne pouvez plus passer de commande, le restaurant est ferme.\n Veuillez cliquer sur Quitter")
 				I.bloque=True
 				s.close()
 
 	except socket.error, e:
 			I.chgt_situation("Vous ne pouvez plus passer de commande, le restaurant est ferme.\n Veuillez cliquer sur quitter")
-			print "erreur dans l'appel a une methode de la classe socket: %s" % e
-			#sys.exit(1)
+			
 	finally:
 
 		s.close()
@@ -53,7 +58,9 @@ def run_client(client,I):
 		
 	
 	
-	
+#########################################################################################
+#								PARTIE INTERFACE DU CLIENT								#
+#########################################################################################	
 
 class Interface:
 
@@ -100,13 +107,19 @@ class Interface:
 		self.bloque= False
 		
 	def b_commande(self):
+		
+		#On commence par verifier que le client a selectionne un menu
 		Menu_select=False
 		for i in xrange(self.liste.size()):
 			if self.liste.selection_includes(i)==1: Menu_select=True
+			
 		if self.bloque ==False and Menu_select==True:
 			run_client(self.client,self)
+		
+		#Si le client est bloque, cela veut dire que le restaurant est ferme	
 		elif self.bloque==True :
 			self.chgt_situation("Vous ne pouvez plus passer de commande, le restaurant est ferme.\n Veuillez cliquer sur quitter")
+			
 		elif Menu_select==False:
 			self.chgt_situation("Vous devez selectionner un menu avant de cliquer sur Commander!")
 			
@@ -131,25 +144,25 @@ class Interface:
 
 
 
-
+#############################################################################
+#								PARTIE CLIENT								#
+#############################################################################
 
 stopLoop = True
 
 class client:
 	
-	def __init__(self,d,num):
-		self.distance=d #Distance entre le client et le restaurant pour calculer le temps qu'il faudra pour qu'il soit livre
+	def __init__(self,num):
 		self.num=num #Chaque client a un numero
 		self.commande=""
 
-		
-
+#Il faut donner un numero au client au moment de l'execution
 if len(sys.argv)<2:
         print "Vous devez donner un numero au client"
         sys.exit(-1)		
         
-num=sys.argv[1] #Il faut donner un numero au client au moment de sa connexion au serveur
-client1=client(10,num)		
+num=sys.argv[1] 
+client1=client(num)		
 t=0
 I=Interface(client1)
 
