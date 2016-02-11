@@ -100,10 +100,15 @@ class Interface:
 		self.bloque= False
 		
 	def b_commande(self):
-		if self.bloque ==False:
+		Menu_select=False
+		for i in xrange(self.liste.size()):
+			if self.liste.selection_includes(i)==1: Menu_select=True
+		if self.bloque ==False and Menu_select==True:
 			run_client(self.client,self)
-		else:
+		elif self.bloque==True :
 			self.chgt_situation("Vous ne pouvez plus passer de commande, le restaurant est ferme.\n Veuillez cliquer sur quitter")
+		elif Menu_select==False:
+			self.chgt_situation("Vous devez selectionner un menu avant de cliquer sur Commander!")
 			
 	
 	def b_quitter(self):
