@@ -56,7 +56,7 @@ class livreur:
 			return "Livreur"+str(self.num)+" : occupe\n"
 
 
-#Creation de l'enemble des livreurs
+#Creation de l'ensemble des livreurs
 restaurant = []
 for i in xrange(5):
 	restaurant.append(livreur(i+1))
@@ -88,7 +88,7 @@ listeClient=[] #Cette liste stocke tous les clients qui se sont connectes
 listeClient2=[] #Cette liste stocke les clients en cours de livraison
 threads=[] #Cette liste stocke les threads
 
-max_commande=4 #Nombre max de comandes avant fermeture du serveur
+max_commande=4 #Nombre max de commandes avant fermeture du serveur
 
 liste_prix=[] #Pour stocker les prix des differntes commandes
 liste_temps_attente=[] #Pour stocker les temps d'attente des differents clients
@@ -140,7 +140,7 @@ def f_thread(clisock):
 		#On retire ce client qui a ete livre de la liste
 		listeClient2.remove(clisock)
 		
-		if waitServeur!=0: #Pour signaler qu'il y a eu de l'attente avant d'obtenir un livreur a la partie client
+		if waitServeur!=0: #Signale qu'il y a eu de l'attente avant d'obtenir un livreur a la partie client
 			clisock.send("fin_attente")
 		else:
 			clisock.send("fin")
@@ -169,7 +169,7 @@ while True:
 	clisock, addr = sock.accept()
 	listeClient.append(clisock)
 			
-	#Si on a atteint le maximum de commande, le client ne peux plus commander
+	#Si on a atteint le maximum de commande, le client ne peut plus commander
 	if len(listeClient)>max_commande:
 		clisock.send("bloque")
 		if len(listeClient2)==0 :	
@@ -189,7 +189,8 @@ while True:
 		#On termine d'abord la commande du dernier client qui s'est connecte
 		t.join()
 		
-		#Il faut traiter le cas ou d'autres clients que le dernier n'ont pas termine (c'est a dire quand listeClient2 contint des elements)
+		#Il faut traiter le cas ou d'autres clients que le dernier a pouvoir etre livre
+		#n'ont pas termine de commander (c'est a dire quand listeClient2 contient des elements)
 		if len(listeClient2)!=0:
 			print "Il reste "+str(len(listeClient2))+" client(s)"
 			

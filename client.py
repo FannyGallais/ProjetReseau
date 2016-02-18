@@ -38,7 +38,9 @@ def run_client(client,I):
 				print data
 				I.chgt_situation("Votre commande a bien ete livree, nous nous excusons pour l'attente!\n Vous pouvez commander de nouveau ou quitter")
 				stopLoop=False
-				
+			
+			# Le restaurant n'a plus de repas à livrer, il ferme ses portes
+	
 			if data[0:5] == "Temps":
 				print data
 				I.v.set(data)
@@ -78,17 +80,18 @@ class Interface:
 		self.var.set("Bienvenue dans notre restaurant\n Selectionnez le menu que vous voulez puis cliquez sur Commander")
 		self.panel.add(self.situation)
 		
+		#la liste des menus
 		self.liste = Listbox(self.fenetre)
-		self.liste.insert(1, "Menu1(10euros)")
-		self.liste.insert(2, "Menu2(12euros)")
-		self.liste.insert(3, "Menu3(13euros)")
-		self.liste.insert(4, "Menu4(15euros)")
-		self.liste.insert(5, "Menu5(6euros)")
-		self.liste.insert(6, "Menu6(9euros)")
-		self.liste.insert(7, "Menu7(11 euros)")
-		self.liste.insert(8, "Menu8(10euros)")
-		self.liste.insert(9, "Menu9(9euros)")
-		self.liste.insert(10, "Menu10(8euros)")
+		self.liste.insert(1, "Menu1 (10euros)")
+		self.liste.insert(2, "Menu2 (12euros)")
+		self.liste.insert(3, "Menu3 (13euros)")
+		self.liste.insert(4, "Menu4 (15euros)")
+		self.liste.insert(5, "Menu5 (6euros)")
+		self.liste.insert(6, "Menu6 (9euros)")
+		self.liste.insert(7, "Menu7 (11 euros)")
+		self.liste.insert(8, "Menu8 (10euros)")
+		self.liste.insert(9, "Menu9 (9euros)")
+		self.liste.insert(10, "Menu10 (8euros)")
 		self.panel.add(self.liste)
 		
 		self.commander=Button(self.fenetre, text="Commander", command=self.b_commande,height=7)
