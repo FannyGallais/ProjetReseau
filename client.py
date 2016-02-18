@@ -39,7 +39,7 @@ def run_client(client,I):
 				I.chgt_situation("Votre commande a bien ete livree, nous nous excusons pour l'attente!\n Vous pouvez commander de nouveau ou quitter")
 				stopLoop=False
 			
-			# Le restaurant n'a plus de repas à livrer, il ferme ses portes
+			# Le restaurant n'a plus de repas a livrer, il ferme ses portes
 	
 			if data[0:5] == "Temps":
 				print data
