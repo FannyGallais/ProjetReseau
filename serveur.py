@@ -57,9 +57,8 @@ class livreur:
 
 
 #Choix des parametres par l'utilisateur
-nb_delivers=input("Choisir le nb de livreurs \n")
-nb_port=input("Choisir le numero de port \n")
-nb_commandes=input("Choisir le nb maximal de commandes \n")
+nb_delivers=input("Choisir le nombre de livreurs \n")
+nb_commandes=input("Choisir le nombre maximal de commandes \n")
 
 
 #Creation de l'ensemble des livreurs
@@ -165,7 +164,7 @@ def ecriture(client,livreur,attente):
 
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-sock.bind(('',nb_port))
+sock.bind(('',8001))
 sock.listen(5)
 while True:
 	clisock, addr = sock.accept()
