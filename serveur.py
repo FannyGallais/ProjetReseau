@@ -56,19 +56,21 @@ class livreur:
 			return "Livreur"+str(self.num)+" : occupe\n"
 
 
+#Choix des parametres par l'utilisateur
+nb_delivers=input("Choisir le nb de livreurs \n")
+nb_port=input("Choisir le numero de port \n")
+nb_commandes=input("Choisir le nb maximal de commandes \n")
+
+
 #Creation de l'ensemble des livreurs
 restaurant = []
-for i in xrange(5):
+for i in xrange(nb_delivers):
 	restaurant.append(livreur(i+1))
 
 
 #Defenition du statut de chaque livreur
-restaurant[0].occupe=True
-restaurant[1].occupe=False
-restaurant[2].occupe=False
-restaurant[3].occupe=True
-restaurant[4].occupe=True
-
+for i in xrange(len(restaurant)):
+	restaurant[i].occupe=False
 
 #Cette fonction renvoie wait si tous les livreurs sont occupes, l'identifiant du premier livreur disponible sinon
 def livreur_dispo():
@@ -88,7 +90,7 @@ listeClient=[] #Cette liste stocke tous les clients qui se sont connectes
 listeClient2=[] #Cette liste stocke les clients en cours de livraison
 threads=[] #Cette liste stocke les threads
 
-max_commande=4 #Nombre max de commandes avant fermeture du serveur
+max_commande=nb_commandes #Nombre max de commandes avant fermeture du serveur
 
 liste_prix=[] #Pour stocker les prix des differntes commandes
 liste_temps_attente=[] #Pour stocker les temps d'attente des differents clients
@@ -163,7 +165,7 @@ def ecriture(client,livreur,attente):
 
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-sock.bind(('',8001))
+sock.bind(('',nb_port))
 sock.listen(5)
 while True:
 	clisock, addr = sock.accept()
